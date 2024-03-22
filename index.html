@@ -21,13 +21,13 @@
                         <th>Activator</th>
                         <th>State</th>
                     </tr>
-                    <!-- Ici, ajoutez les lignes de task1 à task25 -->
+                    <!-- Répétez le bloc suivant pour chaque tâche de 1 à 25 -->
                     <tr>
                         <td>Task1</td>
-                        <td>Activator1</td>
+                        <td><button class="activator-button">Activate</button></td>
                         <td>State1</td>
                     </tr>
-                    <!-- Répétez pour task2 à task25 -->
+                    <!-- ... autres lignes de tâches ... -->
                 </table>
             </div>
             <div class="task-section">
@@ -37,13 +37,13 @@
                         <th>Activator</th>
                         <th>State</th>
                     </tr>
-                    <!-- Ici, ajoutez les lignes de task26 à task50 -->
+                    <!-- Répétez le bloc suivant pour chaque tâche de 26 à 50 -->
                     <tr>
                         <td>Task26</td>
-                        <td>Activator26</td>
+                        <td><button class="activator-button">Activate</button></td>
                         <td>State26</td>
                     </tr>
-                    <!-- Répétez pour task27 à task50 -->
+                    <!-- ... autres lignes de tâches ... -->
                 </table>
             </div>
         </div>
@@ -54,5 +54,18 @@
             <h2>Hacks Panel</h2>
         </div>
     </div>
+
+    <script>
+        // JavaScript pour gérer les clics sur les boutons "Activate"
+        document.querySelectorAll('.activator-button').forEach(function(button) {
+            button.addEventListener('click', function() {
+                if (this.textContent === 'Activate') {
+                    this.textContent = 'Turn Off';
+                } else {
+                    this.textContent = 'Activate';
+                }
+            });
+        });
+    </script>
 </body>
 </html>
