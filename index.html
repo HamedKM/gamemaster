@@ -70,25 +70,28 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
       
-        document.addEventListener('DOMContentLoaded', (event) => {
-          document.querySelectorAll('.activator-button').forEach((button, index) => {
-            const taskRef = doc(db, "tasks", "task" + (index + 1));
-      
-            onSnapshot(taskRef, (doc) => {
-              if (doc.exists()) {
-                const data = doc.data();
-                button.textContent = data.activated ? 'Turn Off' : 'Activate';
-              } else {
-                updateDoc(taskRef, { activated: false }).catch(console.error);
-              }
-            });
-      
-            button.addEventListener('click', () => {
-              let newState = button.textContent === 'Activate';
-              updateDoc(taskRef, { activated: newState }).catch(console.error);
-            });
-          });
-        });
+        document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.activator-button').forEach((button, index) => {
+    const taskRef = doc(db, "tasks", "task" + (index + 1));
+
+    onSnapshot(taskRef, (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        button.textContent = data.activated ? 'Turn Off' : 'Activate';
+      } else {
+        // La première fois, le document est créé avec activated à false
+        setDoc(taskRef, { activated: false }, { merge: true }).catch(console.error);
+      }
+    });
+
+    button.addEventListener('click', () => {
+      const newState = button.textContent === 'Activate';
+      // Mise à jour ou création du document avec setDoc
+      setDoc(taskRef, { activated: newState }, { merge: true }).catch(console.error);
+    });
+  });
+});
+
       </script>
       
 </body>
