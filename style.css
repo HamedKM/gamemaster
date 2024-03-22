@@ -1,0 +1,87 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1px;
+    color: #fff; /* Couleur du texte de l'en-tête */
+    background-color: #333; /* Je suggère d'ajouter un fond pour distinguer l'en-tête */
+}
+
+#resetGame {
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #dc3545; /* Rouge, mais choisissez la couleur que vous voulez */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#resetGame:hover {
+    background-color: #c82333; /* Une teinte plus foncée pour l'effet hover */
+}
+
+.container {
+    display: flex;
+    flex-wrap: nowrap; /* Assure que les éléments sont sur une seule ligne */
+    width: 100%;
+    height: calc(100vh - 80px); /* J'ai ajusté cette hauteur pour tenir compte de l'en-tête */
+}
+
+.tasks, .players, .hacks {
+    padding: 20px;
+    color: #fff; /* Couleur du texte */
+}
+
+.tasks {
+    background-color: #007bff; /* Bleu */
+    flex: 1; /* Flexibilité pour occuper l'espace disponible */
+}
+
+.players {
+    background-color: #28a745; /* Vert */
+    flex: 0.5; /* Occupe moitié moins d'espace que .tasks */
+}
+
+.hacks {
+    background-color: #dc3545; /* Rouge */
+    flex: 0.5; /* Occupe moitié moins d'espace que .tasks */
+}
+
+.task-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px; /* Ajout d'une marge en haut pour espacer les tableaux */
+}
+
+th, td {
+    border: 1px solid black;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #007bff;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
