@@ -60,10 +60,11 @@ body {
 }
 
 .task-section {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
+    width: 50%; /* Ajustez la largeur pour prendre la moitié de la section des tâches */
+    display: inline-block; /* Ou flex si vous voulez utiliser flexbox */
+    vertical-align: top; /* S'assurer que les sections s'alignent en haut */
 }
+
 
 table {
     width: 100%;
