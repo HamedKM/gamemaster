@@ -315,12 +315,12 @@
         </tr>
         <tr>
             <td><a href="Player1.html">Player 1</a></td>
-            <td><button onclick="activatePlayer('player1')">Activate</button></td>
+            <td><button class="player-activator-button" data-playerid="player1">Activate</button></td>  
             <td class="state state-disabled" id="playerState1">Désactivé</td>
         </tr>
         <tr>
             <td><a href="Player2.html">Player 2</a></td>
-            <td><button onclick="activatePlayer('player2')">Activate</button></td>
+            <td><button class="player-activator-button" data-playerid="player2">Activate</button></td>
             <td class="state state-disabled" id="playerState2">Désactivé</td>
         </tr>
     </table>
@@ -333,7 +333,7 @@
     </div>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, updateDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
       
         const firebaseConfig = {
           apiKey: "AIzaSyBDsVje-qI8aw5XLiSRi26O7OCvDei4Hjc",
@@ -347,77 +347,81 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
       
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.activator-button').forEach((button, index) => {
-                const stateText = button.parentElement.nextElementSibling;
-                const taskRef = doc(db, "tasks", "task" + (index + 1));
-
-                onSnapshot(taskRef, (doc) => {
-    if (doc.exists()) {
-        const data = doc.data();
-        button.textContent = data.activated ? 'Deactivate' : 'Activate';
-        stateText.textContent = data.state || 'Désactivé'; // Utilisez le champ 'state' pour déterminer le texte
-        
-        // Appliquez le style en fonction de l'état
-        if (data.state === 'Locked') {
-            stateText.classList.add('locked');
-            stateText.classList.remove('unlocked');
-        } else if (data.state === 'Unlocked') {
-            stateText.classList.add('unlocked');
-            stateText.classList.remove('locked');
-        } else {
-            stateText.classList.remove('locked', 'unlocked');
-        }
-    } else {
-        setDoc(taskRef, { activated: false }).catch(console.error);
-    }
-});
-
-
-    button.addEventListener('click', () => {
-      const isActive = button.textContent === 'Activate';
-      // Mise à jour ou création du document avec setDoc
-      updateDoc(taskRef, { activated: isActive, state: isActive ? 'Locked' : 'Désactivé' }).catch(console.error);
-    });
-  });
-});
-
-//PLAYERS PARAMETRES
-document.addEventListener('DOMContentLoaded', async () => {
-    const playerButtons = document.querySelectorAll('.players-list button'); // Adjust the selector as needed
-
-    playerButtons.forEach(button => {
-        const playerID = button.getAttribute('onclick').match(/\('(.+?)'\)/)[1];
-        const playerRef = doc(db, "players", playerID);
-        const stateText = document.getElementById(`playerState${playerID.replace('player', '')}`);
-
-
-        onSnapshot(playerRef, (doc) => {
-            if (doc.exists()) {
+        document.addEventListener('DOMContentLoaded', async () => {
+          document.querySelectorAll('.activator-button').forEach((button, index) => {
+            const stateText = button.parentElement.nextElementSibling;
+            const taskRef = doc(db, "tasks", "task" + (index + 1));
+      
+            onSnapshot(taskRef, (doc) => {
+              if (doc.exists()) {
+                const data = doc.data();
+                button.textContent = data.activated ? 'Deactivate' : 'Activate';
+                stateText.textContent = data.state || 'Désactivé';
+                
+                if (data.state === 'Locked') {
+                  stateText.classList.add('locked');
+                  stateText.classList.remove('unlocked');
+                } else if (data.state === 'Unlocked') {
+                  stateText.classList.add('unlocked');
+                  stateText.classList.remove('locked');
+                } else {
+                  stateText.classList.remove('locked', 'unlocked');
+                }
+              } else {
+                setDoc(taskRef, { activated: false }).catch(console.error);
+              }
+            });
+      
+            button.addEventListener('click', () => {
+              const isActive = button.textContent === 'Activate';
+              updateDoc(taskRef, { activated: isActive, state: isActive ? 'Locked' : 'Désactivé' }).catch(console.error);
+            });
+          });
+      
+          const playerButtons = document.querySelectorAll('.player-activator-button');
+      
+          playerButtons.forEach(button => {
+            const playerID = button.dataset.playerid;
+            const playerRef = doc(db, "players", playerID);
+            const stateText = document.getElementById(`playerState${playerID.replace('player', '')}`);
+      
+            onSnapshot(playerRef, (doc) => {
+              if (doc.exists()) {
                 const data = doc.data();
                 button.textContent = data.state === "Alive" ? "Kick Out" : "Activate";
                 stateText.textContent = data.state;
-                if (data.state === "Alive") {
-                    stateText.classList.add("state-alive");
-                    stateText.classList.remove("state-disabled");
-                } else {
-                    stateText.classList.remove("state-alive");
-                    stateText.classList.add("state-disabled");
-                }
-            }
+                stateText.classList.toggle("state-alive", data.state === "Alive");
+                stateText.classList.toggle("state-disabled", data.state !== "Alive");
+              }
+            });
+      
+            button.addEventListener('click', () => {
+  getDoc(playerRef).then(docSnapshot => {
+    let newState;
+    if (docSnapshot.exists()) {
+      // Si le document existe, basculer l'état basé sur l'état actuel dans la base de données
+      const currentState = docSnapshot.data().state;
+      newState = currentState === "Alive" ? "Désactivé" : "Alive";
+      updateDoc(playerRef, { state: newState })
+        .then(() => console.log(`${playerID} updated successfully to ${newState}`))
+        .catch(console.error);
+    } else {
+      // Si le document n'existe pas, supposer que nous activons le joueur pour la première fois
+      newState = "Alive";
+      setDoc(playerRef, { state: newState })
+        .then(() => console.log(`${playerID} created with state ${newState}`))
+        .catch(console.error);
+    }
+
+    // Mettre à jour l'interface utilisateur immédiatement, sans attendre la réponse de Firestore
+    button.textContent = newState === "Alive" ? "Kick Out" : "Activate";
+    stateText.textContent = newState;
+    stateText.classList.toggle("state-alive", newState === "Alive");
+    stateText.classList.toggle("state-disabled", newState !== "Alive");
+  }).catch(console.error);
+            });
+          });
         });
-
-      button.onclick = () => {
-        const newState = button.textContent === "Activate" ? "Alive" : "Désactivé";
-        updateDoc(playerRef, { state: newState })
-          .catch(console.error);
-
-        // This changes the button text immediately upon click, but it's optional since onSnapshot will update it based on the database change
-        button.textContent = newState === "Alive" ? "Kick Out" : "Activate";
-      };
-    });
-  });
-
       </script>
       
 </body>
