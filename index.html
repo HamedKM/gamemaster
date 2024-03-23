@@ -382,7 +382,11 @@
         const data = doc.data();
         button.textContent = data.activated ? 'Deactivate' : 'Activate';
         stateText.textContent = data.activated ? 'Locked' : 'Désactivé';
-        stateText.style.color = data.activated ? 'red' : 'black';
+        if (data.activated) {
+          stateText.classList.add('locked'); // Ajoute la classe locked si activé
+        } else {
+          stateText.classList.remove('locked'); // Retire la classe locked si désactivé
+        }
       } else {
         // La première fois, le document est créé avec activated à false
         setDoc(taskRef, { activated: false }).catch(console.error);
