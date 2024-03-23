@@ -162,3 +162,11 @@ h2 {
     color: green;
     font-weight: bold;
 }
+.state-disabled {
+    color: black;
+}
+.state-alive {
+    color: green;
+    font-weight: bold;
+  }
+  

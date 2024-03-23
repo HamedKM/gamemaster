@@ -306,7 +306,26 @@
             </div>
         </div>
         <div class="players">
-            <!--<h2>Players List</h2>-->
+            <div class="players-list">
+    <table>
+        <tr>
+            <th>Player</th>
+            <th>Activate</th>
+            <th>State</th>
+        </tr>
+        <tr>
+            <td><a href="Player1.html">Player 1</a></td>
+            <td><button onclick="activatePlayer('player1')">Activate</button></td>
+            <td class="state state-disabled" id="playerState1">Désactivé</td>
+        </tr>
+        <tr>
+            <td><a href="Player2.html">Player 2</a></td>
+            <td><button onclick="activatePlayer('player2')">Activate</button></td>
+            <td class="state state-disabled" id="playerState2">Désactivé</td>
+        </tr>
+    </table>
+</div>
+
         </div>
         <div class="hacks">
             <!--<h2>Hacks Panel</h2>-->
@@ -362,6 +381,42 @@
     });
   });
 });
+
+//PLAYERS PARAMETRES
+document.addEventListener('DOMContentLoaded', async () => {
+    const playerButtons = document.querySelectorAll('.players-list button'); // Adjust the selector as needed
+
+    playerButtons.forEach(button => {
+        const playerID = button.getAttribute('onclick').match(/\('(.+?)'\)/)[1];
+        const playerRef = doc(db, "players", playerID);
+        const stateText = document.getElementById(`playerState${playerID.replace('player', '')}`);
+
+
+        onSnapshot(playerRef, (doc) => {
+            if (doc.exists()) {
+                const data = doc.data();
+                button.textContent = data.state === "Alive" ? "Kick Out" : "Activate";
+                stateText.textContent = data.state;
+                if (data.state === "Alive") {
+                    stateText.classList.add("state-alive");
+                    stateText.classList.remove("state-disabled");
+                } else {
+                    stateText.classList.remove("state-alive");
+                    stateText.classList.add("state-disabled");
+                }
+            }
+        });
+
+      button.onclick = () => {
+        const newState = button.textContent === "Activate" ? "Alive" : "Désactivé";
+        updateDoc(playerRef, { state: newState })
+          .catch(console.error);
+
+        // This changes the button text immediately upon click, but it's optional since onSnapshot will update it based on the database change
+        button.textContent = newState === "Alive" ? "Kick Out" : "Activate";
+      };
+    });
+  });
 
       </script>
       
