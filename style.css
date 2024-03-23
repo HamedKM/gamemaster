@@ -46,35 +46,45 @@ body {
 
 .tasks {
     background-color: #007bff; /* Bleu */
-    flex: 1; /* Flexibilité pour occuper l'espace disponible */
+    flex: 2; /* Prend 2 parts de l'espace disponible */
+    display: flex; /* Permet d'aligner les deux .task-section côte à côte */
+    padding: 20px;
+    color: rgb(0, 0, 0); /* Couleur du texte */
 }
 
 .players {
     background-color: #28a745; /* Vert */
-    flex: 0.5; /* Occupe moitié moins d'espace que .tasks */
+    flex: 1; /* Prend 1 part de l'espace disponible */
+    padding: 20px;
+    color: #fff; /* Couleur du texte */
 }
 
 .hacks {
     background-color: #dc3545; /* Rouge */
-    flex: 0.5; /* Occupe moitié moins d'espace que .tasks */
+    flex: 1; /* Prend 1 part de l'espace disponible */
+    padding: 20px;
+    color: #fff; /* Couleur du texte */
 }
 
 .task-section {
-    width: 50%; /* Ajustez la largeur pour prendre la moitié de la section des tâches */
-    display: inline-block; /* Ou flex si vous voulez utiliser flexbox */
-    vertical-align: top; /* S'assurer que les sections s'alignent en haut */
+    flex: 1; /* Chaque section des tâches prend une part égale dans .tasks */
+    margin-right: 10px; /* Espacement entre les deux tables */
+}
+
+.task-section:last-child {
+    margin-right: 0; /* Pas de marge à droite pour la dernière section des tâches */
 }
 
 
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px; /* Ajout d'une marge en haut pour espacer les tableaux */
+    margin-top: 0px; /* Ajout d'une marge en haut pour espacer les tableaux */
 }
 
 th, td {
     border: 1px solid black;
-    padding: 8px;
+    padding: 3px;
     text-align: left;
 }
 
@@ -85,4 +95,33 @@ th {
 
 tr:nth-child(even) {
     background-color: #f2f2f2;
+}
+.main-content {
+    display: flex;
+    width: 100%;
+}
+
+.section {
+    padding: 20px;
+    color: #fff; /* Couleur du texte pour toutes les sections */
+}
+
+#section1 {
+    background-color: #007bff; /* Bleu */
+    flex: 2; /* Prend deux parts de l'espace disponible */
+}
+
+#section2 {
+    background-color: #28a745; /* Vert */
+    flex: 1; /* Prend une part de l'espace disponible */
+}
+
+#section3 {
+    background-color: #dc3545; /* Rouge */
+    flex: 1; /* Prend une part de l'espace disponible */
+}
+
+h2 {
+    text-align: center; /* Centre le texte des titres */
+    margin: 0 0 -20px 0; /* Ajustez la marge selon vos besoins */
 }
