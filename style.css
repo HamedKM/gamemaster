@@ -127,5 +127,6 @@ h2 {
 }
 .locked {
     color: red;
+    font-weight: bold;
   }
   
