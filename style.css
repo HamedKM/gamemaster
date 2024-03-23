@@ -129,4 +129,32 @@ h2 {
     color: red;
     font-weight: bold;
   }
-  
+  .task-image {
+    text-align: center; /* Centre l'image dans la division */
+    margin-top: 20px; /* Espace au-dessus de l'image */
+}
+
+.task-image img {
+    max-width: 100%; /* Assure que l'image ne dépasse pas la largeur de son conteneur */
+    height: auto; /* Garde le rapport hauteur/largeur de l'image */
+}
+
+.password-container {
+    text-align: center; /* Centre les éléments à l'intérieur du conteneur */
+    margin-top: 20px; /* Espace au-dessus du conteneur de mot de passe */
+}
+
+.password-container p {
+    margin: 0 0 10px 0; /* Marge en bas de la phrase */
+}
+
+.password-container button {
+    width: auto; /* Ajuste la largeur du bouton à son contenu */
+    padding: 5px 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.password-container input[type='text'], .password-container button {
+    margin: 10px auto; /* Centrage horizontal et espace au-dessus et en dessous */
+    display: block; /* Affiche le champ de texte et le bouton sur des lignes séparées */
+}
