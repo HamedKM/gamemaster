@@ -333,21 +333,27 @@
                 const stateText = button.parentElement.nextElementSibling;
                 const taskRef = doc(db, "tasks", "task" + (index + 1));
 
-    onSnapshot(taskRef, (doc) => {
-      if (doc.exists()) {
+                onSnapshot(taskRef, (doc) => {
+    if (doc.exists()) {
         const data = doc.data();
         button.textContent = data.activated ? 'Deactivate' : 'Activate';
-        stateText.textContent = data.activated ? 'Locked' : 'Désactivé';
-        if (data.activated) {
-          stateText.classList.add('locked'); // Ajoute la classe locked si activé
+        stateText.textContent = data.state || 'Désactivé'; // Utilisez le champ 'state' pour déterminer le texte
+        
+        // Appliquez le style en fonction de l'état
+        if (data.state === 'Locked') {
+            stateText.classList.add('locked');
+            stateText.classList.remove('unlocked');
+        } else if (data.state === 'Unlocked') {
+            stateText.classList.add('unlocked');
+            stateText.classList.remove('locked');
         } else {
-          stateText.classList.remove('locked'); // Retire la classe locked si désactivé
+            stateText.classList.remove('locked', 'unlocked');
         }
-      } else {
-        // La première fois, le document est créé avec activated à false
+    } else {
         setDoc(taskRef, { activated: false }).catch(console.error);
-      }
-    });
+    }
+});
+
 
     button.addEventListener('click', () => {
       const isActive = button.textContent === 'Activate';
