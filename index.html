@@ -39,21 +39,18 @@
                     <tr>
                         <td>Task1</td>
                         <td><button class="activator-button">Activate</button></td>
-                        <td class="state" id="state1">Désactivé</td>
-                        <td>State1</td>
-                    </tr>
-                    <tr>
-                        <td>Task2</td>
+                        <td class="state">Désactivé</td>
+                      </tr>
+                      <tr>
+                        <td>Task1</td>
                         <td><button class="activator-button">Activate</button></td>
-                        <td class="state" id="state1">Désactivé</td>
-                        <td>State2</td>
-                    </tr>
-                    <tr>
-                        <td>Task3</td>
+                        <td class="state">Désactivé</td>
+                      </tr>
+                      <tr>
+                        <td>Task1</td>
                         <td><button class="activator-button">Activate</button></td>
-                        <td class="state" id="state1">Désactivé</td>
-                        <td>State3</td>
-                    </tr>
+                        <td class="state">Désactivé</td>
+                      </tr>
                     <tr>
                         <td>Task4</td>
                         <td><button class="activator-button">Activate</button></td>
@@ -376,28 +373,27 @@
         const db = getFirestore(app);
       
         document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.activator-button').forEach((button, index) => {
-    const stateText = button.nextElementSibling;
-    const taskRef = doc(db, "tasks", "task" + (index + 1));
+            document.querySelectorAll('.activator-button').forEach((button, index) => {
+                const stateText = button.parentElement.nextElementSibling;
+                const taskRef = doc(db, "tasks", "task" + (index + 1));
 
     onSnapshot(taskRef, (doc) => {
       if (doc.exists()) {
         const data = doc.data();
         button.textContent = data.activated ? 'Deactivate' : 'Activate';
-      stateText.textContent = data.state || 'Désactivé';
-      stateText.style.color = data.color || 'black';
+        stateText.textContent = data.activated ? 'Locked' : 'Désactivé';
+        stateText.style.color = data.activated ? 'red' : 'black';
       } else {
         // La première fois, le document est créé avec activated à false
-        setDoc(taskRef, { activated: false }, { merge: true }).catch(console.error);
+        setDoc(taskRef, { activated: false }).catch(console.error);
       }
     });
 
     button.addEventListener('click', () => {
-    const isActive = button.textContent === 'Activate';
-    const newState = isActive ? 'Locked' : 'Désactivé';
-    const newColor = isActive ? 'red' : 'black';
-    updateDoc(taskRef, { activated: isActive, state: newState, color: newColor }).catch(console.error);
-  });
+      const isActive = button.textContent === 'Activate';
+      // Mise à jour ou création du document avec setDoc
+      updateDoc(taskRef, { activated: isActive, state: isActive ? 'Locked' : 'Désactivé' }).catch(console.error);
+    });
   });
 });
 
