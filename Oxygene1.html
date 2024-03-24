@@ -6,12 +6,12 @@
     <title>Réinitialiser Indicateur 1</title>
 </head>
 <body>
-    <h2>Réinitialiser l'Indicateur 1</h2>
-    <button id="resetButton">Réinitialiser l'Indicateur 1</button>
+    <h2 id="statusMessage">Réinitialiser l'Indicateur 1</h2>
+    <button id="resetButton" style="display: none;">Réinitialiser l'Indicateur 1</button>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-        import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBDsVje-qI8aw5XLiSRi26O7OCvDei4Hjc",
@@ -22,21 +22,39 @@
             appId: "1:570925355792:web:7c616e3087b82d41814b95"
         };
 
-        // Initialisation de Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const statusMessage = document.getElementById('statusMessage');
+        const resetButton = document.getElementById('resetButton');
 
-        document.getElementById('resetButton').addEventListener('click', async () => {
-            try {
-                await updateDoc(doc(db, "hacks", "oxygene"), {
-                    indicator1Repaired: true
-                });
-                alert("L'indicateur 1 a été réinitialisé avec succès.");
-            } catch (error) {
-                console.error("Erreur lors de la réinitialisation de l'indicateur 1 : ", error);
-                alert("Erreur lors de la réinitialisation. Veuillez réessayer.");
+        async function init() {
+            const docRef = doc(db, "hacks", "oxygene");
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (data.indicator1Repaired) {
+                    statusMessage.innerText = "Cette vanne d'oxygène est en bon état";
+                    setTimeout(() => window.close(), 10000);
+                } else {
+                    resetButton.style.display = "inline";
+                    resetButton.addEventListener('click', async () => {
+                        try {
+                            await updateDoc(docRef, { indicator1Repaired: true });
+                            statusMessage.innerText = "L'indicateur 1 a été réinitialisé avec succès.";
+                            setTimeout(() => window.close(), 1000); // Ferme la fenêtre après un court délai
+                        } catch (error) {
+                            console.error("Erreur lors de la réinitialisation de l'indicateur 1 : ", error);
+                            statusMessage.innerText = "Erreur lors de la réinitialisation. Veuillez réessayer.";
+                        }
+                    });
+                }
+            } else {
+                console.log("Document does not exist!");
             }
-        });
+        }
+
+        init();
     </script>
 </body>
 </html>
