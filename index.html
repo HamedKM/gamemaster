@@ -408,7 +408,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
-//Player State Management
+// Player State Management
 const playerButtons = document.querySelectorAll('.player-activator-button');
 
 playerButtons.forEach(button => {
@@ -448,50 +448,41 @@ playerButtons.forEach(button => {
   });
 });
 
-//Timer Update and Real-time Indicator Update
-function listenForSabotageUpdates() {
-  ['oxygene', 'reactor'].forEach(type => {
-    onSnapshot(doc(db, "hacks", type), (docSnapshot) => {
-      if (docSnapshot.exists()) {
-        const { state, timerStartedAt } = docSnapshot.data
-        if (state === "Hacked" && timerStartedAt) {
-          const startTime = timerStartedAt.toDate ? timerStartedAt.toDate() : new Date(timerStartedAt);
-          const now = new Date();
-          let timeLeft = 120 - Math.floor((now - startTime) / 1000);
+// Timer Update and Real-time Indicator Update
+// Fonction pour écouter les mises à jour des sabotages
+function listenForHacksUpdates(hackType, timerElementId) {
+    const hackRef = doc(db, "hacks", hackType);
+    onSnapshot(hackRef, (doc) => {
+        const data = doc.data();
+        if (!data) return;
 
-          const timerElement = document.getElementById(`${type}Timer`);
-          const indicatorClassNames = type === "oxygene" ? ["indicator1", "indicator2"] : ["indicator3", "indicator4"];
-          const indicators = indicatorClassNames.map(className => document.querySelector('.' + className));
+        if (data.state === "Hacked" && data.timerStartedAt) {
+            const startTime = new Date(data.timerStartedAt.seconds * 1000);
+            const now = new Date();
+            let timeLeft = 120 - Math.round((now - startTime) / 1000);
+            if (timeLeft < 0) timeLeft = 0; // Assurez-vous que le temps restant ne va pas en dessous de zéro
 
-          // Update the timer every second
-          const interval = setInterval(() => {
+            const timerElement = document.getElementById(timerElementId);
+            timerElement.textContent = `${timeLeft} secondes restantes`;
+
+            // Mise à jour des indicateurs si nécessaire
+            const indicatorClassNames = hackType === "oxygene" ? ['indicator1', 'indicator2'] : ['indicator3', 'indicator4'];
+            const indicators = indicatorClassNames.map(className => document.querySelector('.' + className));
             if (timeLeft <= 0) {
-              clearInterval(interval);
-              timerElement.textContent = "Terminé";
-              indicators.forEach(indicator => indicator.classList.replace('red', 'green'));
+                indicators.forEach(indicator => indicator.classList.replace('red', 'green'));
             } else {
-              timerElement.textContent = `${Math.round(timeLeft)} secondes restantes`;
-              timeLeft -= 1;
+                indicators.forEach(indicator => indicator.classList.replace('green', 'red'));
             }
-          }, 1000);
-
-          // Initial update outside interval to avoid delay
-          timerElement.textContent = `${Math.round(timeLeft)} secondes restantes`;
-          indicators.forEach(indicator => indicator.classList.replace('green', 'red'));
-        } else if (state === "Safe") {
-          document.getElementById(`${type}Timer`).textContent = "Sécurisé";
-          const indicatorClassNames = type === "oxygene" ? ["indicator1", "indicator2"] : ["indicator3", "indicator4"];
-          const indicators = indicatorClassNames.map(className => document.querySelector('.' + className));
-          indicators.forEach(indicator => indicator.classList.replace('red', 'green'));
+        } else {
+            // Reset le texte si le sabotage est résolu
+            document.getElementById(timerElementId).textContent = "Sécurisé";
         }
-      }
     });
-  });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  listenForSabotageUpdates(); // Add this call within your existing DOMContentLoaded listener
-});
+// Ajoutez ces appels dans votre événement DOMContentLoaded existant ou directement après la définition des fonctions
+listenForHacksUpdates('oxygene', 'oxygenTimer');
+listenForHacksUpdates('reactor', 'reactorTimer');
 
 
     </script>
