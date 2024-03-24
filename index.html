@@ -456,34 +456,40 @@ function listenForHacksUpdates(hackType, timerElementId) {
         const data = doc.data();
         if (!data) return;
 
-        const indicators = hackType === "oxygene" ? 
-            [document.querySelector('.indicator1'), document.querySelector('.indicator2')] : 
-            [document.querySelector('.indicator3'), document.querySelector('.indicator4')];
+        const indicator1 = document.querySelector('.indicator1');
+        const indicator2 = document.querySelector('.indicator2'); // Utilisez si nécessaire pour le hackType "oxygene"
+        const indicators = hackType === "oxygene" ? [indicator1, indicator2] : [document.querySelector('.indicator3'), document.querySelector('.indicator4')];
         const timerElement = document.getElementById(timerElementId);
 
         if (data.state === "Hacked" && data.timerStartedAt) {
             const startTime = data.timerStartedAt.toDate();
             let timeLeft = 120 - Math.round((new Date() - startTime) / 1000);
-
-            // Initial update to reflect current state
             updateIndicatorsAndTimer(timeLeft, indicators, timerElement);
-
-            const intervalId = setInterval(() => {
-                timeLeft--;
-                updateIndicatorsAndTimer(timeLeft, indicators, timerElement);
-
-                if (timeLeft <= 0) {
-                    clearInterval(intervalId);
-                    endSabotage(hackType); // End the sabotage and reset indicators
-                }
-            }, 1000);
         } else {
-            // Reset if sabotage is resolved
             indicators.forEach(indicator => indicator.classList.replace('red', 'green'));
             timerElement.textContent = "Sécurisé";
         }
+
+        // Vérifiez l'état de réparation de l'indicateur1 et mettez à jour l'UI en conséquence
+        if (data.indicator1Repaired) {
+            indicator1.classList.replace('red', 'green');
+            // Vous pouvez choisir de réinitialiser l'état 'indicator1Repaired' dans votre base de données ici, si nécessaire
+        }
+        if (data.indicator2Repaired) {
+    document.querySelector('.indicator2').classList.replace('red', 'green');
+    // Vous pouvez aussi réinitialiser l'état 'indicator2Repaired' dans votre base de données ici, si nécessaire
+}
+if (data.indicator3Repaired) {
+    document.querySelector('.indicator3').classList.replace('red', 'green');
+    // Optionnel : réinitialiser l'état 'indicator3Repaired' dans Firestore si nécessaire
+}
+if (data.indicator4Repaired) {
+    document.querySelector('.indicator4').classList.replace('red', 'green');
+    // Optionnel : réinitialiser l'état 'indicator4Repaired' dans Firestore si nécessaire
+}
     });
 }
+
 
 function updateIndicatorsAndTimer(timeLeft, indicators, timerElement) {
     if (timeLeft > 0) {

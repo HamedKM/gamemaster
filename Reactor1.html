@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réinitialiser Indicateur 3</title>
+</head>
+<body>
+    <h2>Réinitialiser l'Indicateur 3</h2>
+    <button id="resetButton">Réinitialiser l'Indicateur 3</button>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+        import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBDsVje-qI8aw5XLiSRi26O7OCvDei4Hjc",
+            authDomain: "amongkolok-5767a.firebaseapp.com",
+            projectId: "amongkolok-5767a",
+            storageBucket: "amongkolok-5767a.appspot.com",
+            messagingSenderId: "570925355792",
+            appId: "1:570925355792:web:7c616e3087b82d41814b95"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        document.getElementById('resetButton').addEventListener('click', async () => {
+            try {
+                await updateDoc(doc(db, "hacks", "reactor"), {
+                    indicator3Repaired: true
+                });
+                alert("L'indicateur 3 a été réinitialisé avec succès.");
+            } catch (error) {
+                console.error("Erreur lors de la réinitialisation de l'indicateur 3 : ", error);
+                alert("Erreur lors de la réinitialisation. Veuillez réessayer.");
+            }
+        });
+    </script>
+</body>
+</html>
