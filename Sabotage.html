@@ -41,7 +41,7 @@
         }
         .timer-display {
             margin-top: 20px;
-            font-size: 16px;
+            font-size: 20px;
             color: #333;
         }
     </style>
@@ -50,15 +50,14 @@
     <div class="sabotage-container">
         <h1>Sabotage</h1>
         <button id="sabotageOxygen">Saboter l'oxygène</button>
-        <div id="oxygenTimerDisplay" class="timer-display">Attente du démarrage...</div>
         <button id="sabotageReactor">Saboter le réacteur</button>
-        <div id="reactorTimerDisplay" class="timer-display">Attente du démarrage...</div>
+        <div class="timer-display" id="sabotageTimer">Prêt pour le sabotage</div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js";
-        import { getFirestore, doc, updateDoc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-firestore.js";
-
+        import { getFirestore, doc, onSnapshot, serverTimestamp, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-firestore.js";
+    
         const firebaseConfig = {
             apiKey: "AIzaSyBDsVje-qI8aw5XLiSRi26O7OCvDei4Hjc",
             authDomain: "amongkolok-5767a.firebaseapp.com",
@@ -67,79 +66,72 @@
             messagingSenderId: "570925355792",
             appId: "1:570925355792:web:7c616e3087b82d41814b95"
         };
-
+    
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-
+    
         const sabotageOxygenButton = document.getElementById('sabotageOxygen');
-        const oxygenTimerDisplay = document.getElementById('oxygenTimerDisplay');
         const sabotageReactorButton = document.getElementById('sabotageReactor');
-        const reactorTimerDisplay = document.getElementById('reactorTimerDisplay');
-
-        function disableButtons() {
+        const sabotageTimerDisplay = document.getElementById('sabotageTimer');
+    
+        const disableButtons = () => {
             sabotageOxygenButton.disabled = true;
             sabotageReactorButton.disabled = true;
-            sabotageOxygenButton.style.cursor = "not-allowed";
-            sabotageReactorButton.style.cursor = "not-allowed";
-        }
-
-        function enableButtons() {
+        };
+    
+        const enableButtons = () => {
             sabotageOxygenButton.disabled = false;
             sabotageReactorButton.disabled = false;
-            sabotageOxygenButton.style.cursor = "pointer";
-            sabotageReactorButton.style.cursor = "pointer";
-        }
-
-        function setupSabotageTimer(button, hackType, timerDisplay) {
-            button.addEventListener('click', async () => {
-                disableButtons(); // Disable both buttons
-                
-                const hackRef = doc(db, "hacks", hackType);
-                await updateDoc(hackRef, {
-                    state: "Hacked",
-                    timerStartedAt: new Date()
-                }).catch(async error => {
-                    if (error.code === 'not-found') {
-                        await setDoc(hackRef, {
-                            state: "Hacked",
-                            timerStartedAt: new Date()
-                        });
+        };
+    
+        // Vérification initiale de l'état du timer au chargement de la page
+        const checkTimerState = async () => {
+            const timerDoc = await getDoc(doc(db, "hacks", "timer"));
+            if (timerDoc.exists()) {
+                const timerData = timerDoc.data();
+                if (timerData.timerStartedAt) {
+                    const startTime = new Date(timerData.timerStartedAt.seconds * 1000);
+                    const currentTime = new Date();
+                    const elapsedTime = Math.floor((currentTime - startTime) / 1000);
+                    const remainingTime = Math.max(0, 120 - elapsedTime);
+                    if (remainingTime > 0) {
+                        disableButtons();
+                        startCountdown(remainingTime);
+                    } else {
+                        enableButtons();
                     }
-                });
-
-                console.log(`Le minuteur de ${hackType} a été déclenché.`);
-            });
-
-            onSnapshot(doc(db, "hacks", hackType), (docSnapshot) => {
-                if (docSnapshot.exists()) {
-                    const data =
-                    docSnapshot.data();
-                    if (data.state === "Hacked" && data.timerStartedAt) {
-                        const startTime = data.timerStartedAt.toDate ? data.timerStartedAt.toDate() : new Date(data.timerStartedAt);
-                        const elapsedTime = Math.floor((new Date() - startTime) / 1000);
-                        let remainingTime = 120 - elapsedTime;
-
-                        let intervalId = setInterval(() => {
-                            if (remainingTime > 0) {
-                                timerDisplay.textContent = `${remainingTime} secondes restantes`;
-                                remainingTime--;
-                            } else {
-                                clearInterval(intervalId);
-                                timerDisplay.textContent = "Terminé";
-                                enableButtons(); // Reactivate both buttons
-                            }
-                        }, 1000);
-                    }
-                } else {
-                    timerDisplay.textContent = "En attente...";
-                    enableButtons(); // Ensure buttons are reactivated if the sabotage is not active
                 }
-            });
-        }
-
-        // Setup sabotage timers for both oxygen and reactor
-        setupSabotageTimer(sabotageOxygenButton, "oxygene", oxygenTimerDisplay);
-        setupSabotageTimer(sabotageReactorButton, "reactor", reactorTimerDisplay);
+            }
+        };
+    
+        const startCountdown = (duration) => {
+            let timeLeft = duration;
+            const countdown = setInterval(() => {
+                timeLeft--;
+                sabotageTimerDisplay.textContent = `${timeLeft} secondes restantes`;
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    enableButtons();
+                    sabotageTimerDisplay.textContent = "Prêt pour le sabotage";
+                }
+            }, 1000);
+        };
+    
+        const handleSabotage = async () => {
+            disableButtons();
+            await setDoc(doc(db, "hacks", "timer"), {
+                timerStartedAt: serverTimestamp()
+            }, { merge: true });
+            startCountdown(120);
+        };
+    
+        sabotageOxygenButton.addEventListener('click', handleSabotage);
+        sabotageReactorButton.addEventListener('click', handleSabotage);
+    
+        checkTimerState();
     </script>
+    
+    
 </body>
 </html>
+

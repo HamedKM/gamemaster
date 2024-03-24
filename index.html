@@ -495,10 +495,37 @@ function listenForHacksUpdates(hackType, timerElementId) {
 
 
 // Ajoutez ces appels dans votre événement DOMContentLoaded existant ou directement après la définition des fonctions
-listenForHacksUpdates('oxygene', 'oxygenTimer');
-listenForHacksUpdates('reactor', 'reactorTimer');
+function updateTimer(elementId) {
+        const timerRef = doc(db, "hacks", "timer");
+        onSnapshot(timerRef, (docSnapshot) => {
+            if (docSnapshot.exists()) {
+                const data = docSnapshot.data();
+                if (data.timerStartedAt) {
+                    const startTime = new Date(data.timerStartedAt.seconds * 1000);
+                    const intervalId = setInterval(() => {
+                        const now = new Date();
+                        const timeDiff = now - startTime;
+                        const timeLeft = Math.max(0, 120 - Math.floor(timeDiff / 1000));
 
+                        if (timeLeft <= 0) {
+                            clearInterval(intervalId);
+                            document.getElementById(elementId).textContent = "Sécurisé";
+                        } else {
+                            document.getElementById(elementId).textContent = `${timeLeft} secondes restantes`;
+                        }
+                    }, 1000);
+                }
+            } else {
+                document.getElementById(elementId).textContent = "Sécurisé";
+            }
+        });
+    }
 
+    document.addEventListener('DOMContentLoaded', () => {
+        // Mise à jour des minuteurs pour l'oxygène et le réacteur
+        updateTimer('oxygenTimer');
+        updateTimer('reactorTimer');
+    });
     </script>
       
 </body>
