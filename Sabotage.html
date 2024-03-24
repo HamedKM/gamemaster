@@ -117,19 +117,26 @@
             }, 1000);
         };
     
-        const handleSabotage = async () => {
-            disableButtons();
-            await setDoc(doc(db, "hacks", "timer"), {
-                timerStartedAt: serverTimestamp()
-            }, { merge: true });
-            startCountdown(120);
-        };
+        const handleSabotage = async (sabotageType) => {
+        disableButtons();
+        await setDoc(doc(db, "hacks", "timer"), {
+            timerStartedAt: serverTimestamp()
+        }, { merge: true });
+        
+        // Nouveau: Mettre à jour le document correspondant au type de sabotage
+        await setDoc(doc(db, "hacks", sabotageType), {
+            state: "Hacked",
+            timerStartedAt: serverTimestamp()
+        });
+
+        startCountdown(120);
+    };
     
-        sabotageOxygenButton.addEventListener('click', handleSabotage);
-        sabotageReactorButton.addEventListener('click', handleSabotage);
-    
-        checkTimerState();
-    </script>
+    sabotageOxygenButton.addEventListener('click', () => handleSabotage('oxygene'));
+    sabotageReactorButton.addEventListener('click', () => handleSabotage('reactor'));
+
+    checkTimerState();
+</script>
     
     
 </body>

@@ -333,7 +333,7 @@
                 <table>
                     <tr>
                         <th>Hack</th>
-                        <th>Timer</th>
+                        <th>Timer to next Hack</th>
                         <th>Indicators</th>
                     </tr>
                     <tr>
@@ -526,7 +526,44 @@ function updateTimer(elementId) {
         updateTimer('oxygenTimer');
         updateTimer('reactorTimer');
     });
-    </script>
+    function listenForSabotageUpdates() {
+    const oxygenRef = doc(db, "hacks", "oxygene");
+    const reactorRef = doc(db, "hacks", "reactor");
+
+    // Écoute les changements pour le sabotage de l'oxygène
+    onSnapshot(oxygenRef, (doc) => {
+        const data = doc.data();
+        const indicatorsOxygen = [document.querySelector('.indicator1'), document.querySelector('.indicator2')];
+        updateIndicatorStatus(data, indicatorsOxygen);
+    });
+
+    // Écoute les changements pour le sabotage du réacteur
+    onSnapshot(reactorRef, (doc) => {
+        const data = doc.data();
+        const indicatorsReactor = [document.querySelector('.indicator3'), document.querySelector('.indicator4')];
+        updateIndicatorStatus(data, indicatorsReactor);
+    });
+}
+
+function updateIndicatorStatus(data, indicators) {
+    if (data && data.state === "Hacked" && data.timerStartedAt) {
+        const startTime = data.timerStartedAt.toDate();
+        const now = new Date();
+        const timeLeft = 120 - Math.round((now - startTime) / 1000);
+        // Change la couleur des indicateurs en rouge si le minuteur est en cours
+        indicators.forEach(indicator => indicator.classList.toggle('red', timeLeft > 0));
+        indicators.forEach(indicator => indicator.classList.toggle('green', timeLeft <= 0));
+    } else {
+        // Réinitialise la couleur des indicateurs en vert si le sabotage n'est plus actif
+        indicators.forEach(indicator => indicator.classList.remove('red'));
+        indicators.forEach(indicator => indicator.classList.add('green'));
+    }
+}
+
+document.addEventListener('DOMContentLoaded', listenForSabotageUpdates);
+
+
+</script>
       
 </body>
 </html>
