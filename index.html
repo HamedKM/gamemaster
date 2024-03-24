@@ -329,6 +329,33 @@
         </div>
         <div class="hacks">
             <!--<h2>Hacks Panel</h2>-->
+            <div class="hacks">
+                <table>
+                    <tr>
+                        <th>Hack</th>
+                        <th>Timer</th>
+                        <th>Indicators</th>
+                    </tr>
+                    <tr>
+                        <td>Oxygene</td>
+                        <td id="oxygenTimer">   </td>
+                        <td>
+                            <span class="indicator1 green"></span>
+                            <span class="indicator2 green"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Reactor</td>
+                        <td id="reactorTimer">   </td>
+
+                        <td>
+                            <span class="indicator3 green"></span>
+                            <span class="indicator4 green"></span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
         </div>
     </div>
     <script type="module">
@@ -385,15 +412,23 @@
             const playerRef = doc(db, "players", playerID);
             const stateText = document.getElementById(`playerState${playerID.replace('player', '')}`);
       
-            onSnapshot(playerRef, (doc) => {
-              if (doc.exists()) {
-                const data = doc.data();
-                button.textContent = data.state === "Alive" ? "Kick Out" : "Activate";
-                stateText.textContent = data.state;
-                stateText.classList.toggle("state-alive", data.state === "Alive");
-                stateText.classList.toggle("state-disabled", data.state !== "Alive");
-              }
-            });
+    onSnapshot(playerRef, (doc) => {
+    if (doc.exists()) {
+        const data = doc.data();
+        button.textContent = data.state === "Alive" ? "Kick Out" : "Activate";
+        stateText.textContent = data.state;
+        // Appliquer le style pour "DEAD"
+        if(data.state === "DEAD") {
+            stateText.classList.add("state-dead"); // Ajoutez cette classe dans votre CSS
+            stateText.classList.remove("state-alive", "state-disabled");
+            button.disabled = true; // Optionnel: désactiver le bouton si le joueur est mort
+        } else {
+            stateText.classList.toggle("state-alive", data.state === "Alive");
+            stateText.classList.toggle("state-disabled", data.state !== "Alive");
+        }
+    }
+});
+
       
             button.addEventListener('click', () => {
   getDoc(playerRef).then(docSnapshot => {
@@ -422,6 +457,121 @@
             });
           });
         });
+
+
+        // Fonction pour démarrer un minuteur de 240 secondes pour l'oxygène
+// Fonction pour démarrer ou continuer un minuteur pour l'oxygène basé sur le moment du sabotage
+async function startOxygenTimer() {
+    const oxygenRef = doc(db, "hacks", "oxygene");
+    const docSnap = await getDoc(oxygenRef);
+
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.state === "Hacked" && data.timerStartedAt) {
+            const startTime = data.timerStartedAt.toDate ? data.timerStartedAt.toDate() : new Date(data.timerStartedAt);
+            let timeLeft = 240 - ((new Date() - startTime) / 1000);
+
+            const timerElement = document.getElementById('oxygenTimer');
+            updateTimerDisplay(timeLeft, timerElement, 'oxygene'); 
+        }
+    }
+}
+
+function updateTimerDisplay(timeLeft, timerElement) {
+    const interval = setInterval(() => {
+        if (timeLeft <= 0) {
+            clearInterval(interval);
+            timerElement.textContent = "Terminé";
+            // Mettre à jour le statut de l'oxygène comme sécurisé ou similaire ici
+        } else {
+            timerElement.textContent = `${Math.round(timeLeft)} secondes restantes`;
+            timeLeft -= 1;
+        }
+    }, 1000);
+}
+
+// Écouter les mises à jour de l'état d'oxygène
+const oxygenRef = doc(db, "hacks", "oxygene");
+onSnapshot(doc(db, "hacks", "oxygene"), (doc) => {
+    const data = doc.data();
+    const indicators = [document.querySelector('.indicator1'), document.querySelector('.indicator2')];
+    // Vérifier si l'état de l'oxygène est "Safe"
+    if (data && data.state === "Safe") {
+        indicators.forEach(indicator => indicator.classList.replace('red', 'green'));
+    } else if (data && data.state === "Hacked") {
+        indicators.forEach(indicator => indicator.classList.replace('green', 'red'));
+    }
+});
+// Ajouter cette fonction pour gérer le minuteur du réacteur
+async function startReactorTimer() {
+    const reactorRef = doc(db, "hacks", "reactor");
+    const docSnap = await getDoc(reactorRef);
+
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.state === "Hacked" && data.timerStartedAt) {
+            const startTime = data.timerStartedAt.toDate ? data.timerStartedAt.toDate() : new Date(data.timerStartedAt);
+            let timeLeft = 240 - ((new Date() - startTime) / 1000);
+
+            const timerElement = document.getElementById('reactorTimer');
+            updateTimerDisplay(timeLeft, timerElement, 'reactor');
+        }
+    }
+}
+
+// Écouter les mises à jour de l'état du réacteur
+const reactorRef = doc(db, "hacks", "reactor");
+onSnapshot(doc(db, "hacks", "reactor"), (doc) => {
+    const indicators = [document.querySelector('.indicator3'), document.querySelector('.indicator4')];
+    if (doc.exists() && doc.data().state === "Hacked") {
+        indicators.forEach(indicator => indicator.classList.replace('green', 'red'));
+    } else {
+        indicators.forEach(indicator => indicator.classList.replace('red', 'green'));
+    }
+});
+
+async function updateTimerAndIndicators(hackType, timerElementId, indicatorClassNames) {
+        const hackRef = doc(db, "hacks", hackType);
+        const docSnap = await getDoc(hackRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.state === "Hacked" && data.timerStartedAt) {
+                const startTime = data.timerStartedAt.toDate ? data.timerStartedAt.toDate() : new Date(data.timerStartedAt);
+                let timeLeft = 240 - ((new Date() - startTime) / 1000);
+                const timerElement = document.getElementById(timerElementId);
+                const indicators = indicatorClassNames.map(className => document.querySelector('.' + className));
+
+                const interval = setInterval(() => {
+                    if (timeLeft <= 0) {
+                        clearInterval(interval);
+                        timerElement.textContent = "Terminé";
+                        indicators.forEach(indicator => indicator.classList.replace('red', 'green'));
+                    } else {
+                        timerElement.textContent = `${Math.round(timeLeft)} secondes restantes`;
+                        indicators.forEach(indicator => indicator.classList.replace('green', 'red'));
+                        timeLeft -= 1;
+                    }
+                }, 1000);
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        updateTimerAndIndicators("oxygene", "oxygenTimer", ["indicator1", "indicator2"]);
+        updateTimerAndIndicators("reactor", "reactorTimer", ["indicator3", "indicator4"]);
+    });
+
+    // Écoute sur l'état de la vanne d'oxygène 1
+const valve1Ref = doc(db, "oxygeneValves", "valve1");
+onSnapshot(valve1Ref, (doc) => {
+    const data = doc.data();
+    // Si la vanne est réparée, mettre l'indicateur 1 en vert
+    if (data && data.isRepaired) {
+        document.querySelector('.indicator1').classList.replace('red', 'green');
+    }
+});
+
       </script>
       
 </body>

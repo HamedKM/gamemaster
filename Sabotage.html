@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sabotage</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background-color: #f4f4f4;
+            font-family: Arial, sans-serif;
+        }
+        .sabotage-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            color: white;
+            background-color: #dc3545;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #c82333;
+        }
+        .timer-display {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="sabotage-container">
+        <h1>Sabotage</h1>
+        <button id="sabotageOxygen">Saboter l'oxygène</button>
+        <div id="oxygenTimerDisplay" class="timer-display">Attente du démarrage...</div>
+        <button id="sabotageReactor">Saboter le réacteur</button>
+        <div id="reactorTimerDisplay" class="timer-display">Attente du démarrage...</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js";
+        import { getFirestore, doc, updateDoc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-firestore.js";
+    
+        const firebaseConfig = {
+            apiKey: "AIzaSyBDsVje-qI8aw5XLiSRi26O7OCvDei4Hjc",
+            authDomain: "amongkolok-5767a.firebaseapp.com",
+            projectId: "amongkolok-5767a",
+            storageBucket: "amongkolok-5767a.appspot.com",
+            messagingSenderId: "570925355792",
+            appId: "1:570925355792:web:7c616e3087b82d41814b95"
+        };
+    
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+    
+        const sabotageOxygenButton = document.getElementById('sabotageOxygen');
+        const oxygenTimerDisplay = document.getElementById('oxygenTimerDisplay');
+        const sabotageReactorButton = document.getElementById('sabotageReactor');
+        const reactorTimerDisplay = document.getElementById('reactorTimerDisplay');
+    
+        // Function to manage the sabotage button and timer display
+        function setupSabotageTimer(button, hackType, timerDisplay) {
+            button.addEventListener('click', async () => {
+                const hackRef = doc(db, "hacks", hackType);
+                await updateDoc(hackRef, {
+                    state: "Hacked",
+                    timerStartedAt: new Date()
+                }).catch(async error => {
+                    if (error.code === 'not-found') {
+                        await setDoc(hackRef, {
+                            state: "Hacked",
+                            timerStartedAt: new Date()
+                        });
+                    }
+                });
+    
+                button.disabled = true; // Disable the button
+                console.log(`Le minuteur de ${hackType} a été déclenché.`);
+            });
+    
+            onSnapshot(doc(db, "hacks", hackType), (docSnapshot) => {
+                if (docSnapshot.exists()) {
+                    const data = docSnapshot.data();
+                    if (data.state === "Hacked" && data.timerStartedAt) {
+                        const startTime = data.timerStartedAt.toDate ? data.timerStartedAt.toDate() : new Date(data.timerStartedAt);
+                        const elapsedTime = Math.floor((new Date() - startTime) / 1000);
+                        let remainingTime = 240 - elapsedTime;
+    
+                        let intervalId;
+    
+                        const updateTimer = () => {
+                            if (remainingTime >= 0) {
+                                timerDisplay.textContent = `${remainingTime} secondes restantes`;
+                                remainingTime--;
+                            } else {
+                                timerDisplay.textContent = "Terminé";
+                                clearInterval(intervalId);
+                                button.disabled = false; // Reactivate the button once the timer is finished
+                            }
+                        };
+    
+                        updateTimer();
+                        intervalId = setInterval(updateTimer, 1000);
+                    } else {
+                        // Handle the case where the sabotage state is not "Hacked" or no timer is started
+                        timerDisplay.textContent = "En attente...";
+                        button.disabled = false; // Ensure button is reactivated if the sabotage is not active
+                    }
+                }
+            });
+        }
+    
+        // Setup sabotage timers for both oxygen and reactor
+        setupSabotageTimer(sabotageOxygenButton, "oxygene", oxygenTimerDisplay);
+        setupSabotageTimer(sabotageReactorButton, "reactor", reactorTimerDisplay);
+    </script>
+    
+</body>
+</html>
+

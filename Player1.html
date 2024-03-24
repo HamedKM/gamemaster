@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player 1</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .center-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="center-container" id="playerContent">
+        <!-- Le contenu initial ici sera remplacé basé sur l'état du joueur -->
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+    
+        const firebaseConfig = {
+            apiKey: "AIzaSyBDsVje-qI8aw5XLiSRi26O7OCvDei4Hjc",
+            authDomain: "amongkolok-5767a.firebaseapp.com",
+            projectId: "amongkolok-5767a",
+            storageBucket: "amongkolok-5767a.appspot.com",
+            messagingSenderId: "570925355792",
+            appId: "1:570925355792:web:7c616e3087b82d41814b95"
+        };
+    
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+    
+        document.addEventListener('DOMContentLoaded', () => {
+            const playerRef = doc(db, "players", "player1");
+            getDoc(playerRef).then(docSnapshot => {
+                if (docSnapshot.exists() && docSnapshot.data().state !== "Désactivé") {
+                    // Le joueur est dans le jeu
+                    document.getElementById('playerContent').innerHTML = `
+                        <h1>Player 1 is Alive</h1>
+                        <button id="killPlayer">Kill this Player!</button>
+                    `;
+                    document.getElementById('killPlayer').addEventListener('click', () => {
+                        updateDoc(playerRef, { state: "DEAD" }) // Mise à jour de l'état en "DEAD"
+                            .then(() => {
+                                console.log('Player 1 has been marked as DEAD.');
+                                alert('Player 1 has been marked as DEAD.');
+                                window.location.href = '/index.html'; // Optionnel: redirection
+                            })
+                            .catch(error => {
+                                console.error("Error updating document: ", error);
+                            });
+                    });
+                } else {
+                    // Le joueur n'est pas dans le jeu
+                    document.getElementById('playerContent').innerHTML = `<h1>This player is not in this Game</h1>`;
+                }
+            }).catch(error => {
+                console.error("Error fetching document: ", error);
+            });
+        });
+    </script>
+    
+</body>
+</html>
