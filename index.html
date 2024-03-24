@@ -456,112 +456,57 @@ function listenForHacksUpdates(hackType, timerElementId) {
         const data = doc.data();
         if (!data) return;
 
+        const indicators = hackType === "oxygene" ? 
+            [document.querySelector('.indicator1'), document.querySelector('.indicator2')] : 
+            [document.querySelector('.indicator3'), document.querySelector('.indicator4')];
+        const timerElement = document.getElementById(timerElementId);
+
         if (data.state === "Hacked" && data.timerStartedAt) {
-            const startTime = new Date(data.timerStartedAt.seconds * 1000);
-            
-            // Met à jour le timer toutes les secondes
+            const startTime = data.timerStartedAt.toDate();
+            let timeLeft = 120 - Math.round((new Date() - startTime) / 1000);
+
+            // Initial update to reflect current state
+            updateIndicatorsAndTimer(timeLeft, indicators, timerElement);
+
             const intervalId = setInterval(() => {
-                const now = new Date();
-                let timeLeft = 120 - Math.round((now - startTime) / 1000);
-                if (timeLeft < 0) {
-                    timeLeft = 0;
-                    clearInterval(intervalId); // Arrête l'intervalle quand le temps est écoulé
-                    document.getElementById(timerElementId).textContent = "Terminé";
-                } else {
-                    document.getElementById(timerElementId).textContent = `${timeLeft} secondes restantes`;
+                timeLeft--;
+                updateIndicatorsAndTimer(timeLeft, indicators, timerElement);
+
+                if (timeLeft <= 0) {
+                    clearInterval(intervalId);
+                    endSabotage(hackType); // End the sabotage and reset indicators
                 }
             }, 1000);
-
-            // Mise à jour initiale pour éviter le délai de 1 seconde de l'intervalle
-            const now = new Date();
-            let initialTimeLeft = 120 - Math.round((now - startTime) / 1000);
-            if (initialTimeLeft < 0) initialTimeLeft = 0;
-            document.getElementById(timerElementId).textContent = `${initialTimeLeft} secondes restantes`;
-
-            // Mise à jour des indicateurs si nécessaire
-            const indicatorClassNames = hackType === "oxygene" ? ['indicator1', 'indicator2'] : ['indicator3', 'indicator4'];
-            const indicators = indicatorClassNames.map(className => document.querySelector('.' + className));
-            if (initialTimeLeft <= 0) {
-                indicators.forEach(indicator => indicator.classList.replace('red', 'green'));
-            } else {
-                indicators.forEach(indicator => indicator.classList.replace('green', 'red'));
-            }
         } else {
-            // Reset le texte si le sabotage est résolu
-            document.getElementById(timerElementId).textContent = "Sécurisé";
+            // Reset if sabotage is resolved
+            indicators.forEach(indicator => indicator.classList.replace('red', 'green'));
+            timerElement.textContent = "Sécurisé";
         }
     });
 }
 
-
-// Ajoutez ces appels dans votre événement DOMContentLoaded existant ou directement après la définition des fonctions
-function updateTimer(elementId) {
-        const timerRef = doc(db, "hacks", "timer");
-        onSnapshot(timerRef, (docSnapshot) => {
-            if (docSnapshot.exists()) {
-                const data = docSnapshot.data();
-                if (data.timerStartedAt) {
-                    const startTime = new Date(data.timerStartedAt.seconds * 1000);
-                    const intervalId = setInterval(() => {
-                        const now = new Date();
-                        const timeDiff = now - startTime;
-                        const timeLeft = Math.max(0, 120 - Math.floor(timeDiff / 1000));
-
-                        if (timeLeft <= 0) {
-                            clearInterval(intervalId);
-                            document.getElementById(elementId).textContent = "Sécurisé";
-                        } else {
-                            document.getElementById(elementId).textContent = `${timeLeft} secondes restantes`;
-                        }
-                    }, 1000);
-                }
-            } else {
-                document.getElementById(elementId).textContent = "Sécurisé";
-            }
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        // Mise à jour des minuteurs pour l'oxygène et le réacteur
-        updateTimer('oxygenTimer');
-        updateTimer('reactorTimer');
-    });
-    function listenForSabotageUpdates() {
-    const oxygenRef = doc(db, "hacks", "oxygene");
-    const reactorRef = doc(db, "hacks", "reactor");
-
-    // Écoute les changements pour le sabotage de l'oxygène
-    onSnapshot(oxygenRef, (doc) => {
-        const data = doc.data();
-        const indicatorsOxygen = [document.querySelector('.indicator1'), document.querySelector('.indicator2')];
-        updateIndicatorStatus(data, indicatorsOxygen);
-    });
-
-    // Écoute les changements pour le sabotage du réacteur
-    onSnapshot(reactorRef, (doc) => {
-        const data = doc.data();
-        const indicatorsReactor = [document.querySelector('.indicator3'), document.querySelector('.indicator4')];
-        updateIndicatorStatus(data, indicatorsReactor);
-    });
-}
-
-function updateIndicatorStatus(data, indicators) {
-    if (data && data.state === "Hacked" && data.timerStartedAt) {
-        const startTime = data.timerStartedAt.toDate();
-        const now = new Date();
-        const timeLeft = 120 - Math.round((now - startTime) / 1000);
-        // Change la couleur des indicateurs en rouge si le minuteur est en cours
-        indicators.forEach(indicator => indicator.classList.toggle('red', timeLeft > 0));
-        indicators.forEach(indicator => indicator.classList.toggle('green', timeLeft <= 0));
+function updateIndicatorsAndTimer(timeLeft, indicators, timerElement) {
+    if (timeLeft > 0) {
+        indicators.forEach(indicator => indicator.classList.replace('green', 'red'));
+        timerElement.textContent = `${timeLeft} secondes restantes`;
     } else {
-        // Réinitialise la couleur des indicateurs en vert si le sabotage n'est plus actif
-        indicators.forEach(indicator => indicator.classList.remove('red'));
-        indicators.forEach(indicator => indicator.classList.add('green'));
+        indicators.forEach(indicator => indicator.classList.replace('red', 'green'));
+        timerElement.textContent = "Sécurisé";
     }
 }
 
-document.addEventListener('DOMContentLoaded', listenForSabotageUpdates);
+function endSabotage(sabotageType) {
+    const sabotageRef = doc(db, "hacks", sabotageType);
+    updateDoc(sabotageRef, {
+        state: "Safe",
+        timerStartedAt: null // Resets the timer
+    }).catch(console.error);
+}
 
+document.addEventListener('DOMContentLoaded', () => {
+    listenForHacksUpdates('oxygene', 'oxygenTimer');
+    listenForHacksUpdates('reactor', 'reactorTimer');
+});
 
 </script>
       
