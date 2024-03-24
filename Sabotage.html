@@ -35,6 +35,10 @@
         button:hover {
             background-color: #c82333;
         }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
         .timer-display {
             margin-top: 20px;
             font-size: 16px;
@@ -54,7 +58,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js";
         import { getFirestore, doc, updateDoc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-firestore.js";
-    
+
         const firebaseConfig = {
             apiKey: "AIzaSyBDsVje-qI8aw5XLiSRi26O7OCvDei4Hjc",
             authDomain: "amongkolok-5767a.firebaseapp.com",
@@ -63,18 +67,33 @@
             messagingSenderId: "570925355792",
             appId: "1:570925355792:web:7c616e3087b82d41814b95"
         };
-    
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-    
+
         const sabotageOxygenButton = document.getElementById('sabotageOxygen');
         const oxygenTimerDisplay = document.getElementById('oxygenTimerDisplay');
         const sabotageReactorButton = document.getElementById('sabotageReactor');
         const reactorTimerDisplay = document.getElementById('reactorTimerDisplay');
-    
-        // Function to manage the sabotage button and timer display
+
+        function disableButtons() {
+            sabotageOxygenButton.disabled = true;
+            sabotageReactorButton.disabled = true;
+            sabotageOxygenButton.style.cursor = "not-allowed";
+            sabotageReactorButton.style.cursor = "not-allowed";
+        }
+
+        function enableButtons() {
+            sabotageOxygenButton.disabled = false;
+            sabotageReactorButton.disabled = false;
+            sabotageOxygenButton.style.cursor = "pointer";
+            sabotageReactorButton.style.cursor = "pointer";
+        }
+
         function setupSabotageTimer(button, hackType, timerDisplay) {
             button.addEventListener('click', async () => {
+                disableButtons(); // Disable both buttons
+                
                 const hackRef = doc(db, "hacks", hackType);
                 await updateDoc(hackRef, {
                     state: "Hacked",
@@ -87,48 +106,40 @@
                         });
                     }
                 });
-    
-                button.disabled = true; // Disable the button
+
                 console.log(`Le minuteur de ${hackType} a été déclenché.`);
             });
-    
+
             onSnapshot(doc(db, "hacks", hackType), (docSnapshot) => {
                 if (docSnapshot.exists()) {
-                    const data = docSnapshot.data();
+                    const data =
+                    docSnapshot.data();
                     if (data.state === "Hacked" && data.timerStartedAt) {
                         const startTime = data.timerStartedAt.toDate ? data.timerStartedAt.toDate() : new Date(data.timerStartedAt);
                         const elapsedTime = Math.floor((new Date() - startTime) / 1000);
-                        let remainingTime = 240 - elapsedTime;
-    
-                        let intervalId;
-    
-                        const updateTimer = () => {
-                            if (remainingTime >= 0) {
+                        let remainingTime = 120 - elapsedTime;
+
+                        let intervalId = setInterval(() => {
+                            if (remainingTime > 0) {
                                 timerDisplay.textContent = `${remainingTime} secondes restantes`;
                                 remainingTime--;
                             } else {
-                                timerDisplay.textContent = "Terminé";
                                 clearInterval(intervalId);
-                                button.disabled = false; // Reactivate the button once the timer is finished
+                                timerDisplay.textContent = "Terminé";
+                                enableButtons(); // Reactivate both buttons
                             }
-                        };
-    
-                        updateTimer();
-                        intervalId = setInterval(updateTimer, 1000);
-                    } else {
-                        // Handle the case where the sabotage state is not "Hacked" or no timer is started
-                        timerDisplay.textContent = "En attente...";
-                        button.disabled = false; // Ensure button is reactivated if the sabotage is not active
+                        }, 1000);
                     }
+                } else {
+                    timerDisplay.textContent = "En attente...";
+                    enableButtons(); // Ensure buttons are reactivated if the sabotage is not active
                 }
             });
         }
-    
+
         // Setup sabotage timers for both oxygen and reactor
         setupSabotageTimer(sabotageOxygenButton, "oxygene", oxygenTimerDisplay);
         setupSabotageTimer(sabotageReactorButton, "reactor", reactorTimerDisplay);
     </script>
-    
 </body>
 </html>
-

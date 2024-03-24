@@ -71,6 +71,13 @@
                 alert("Erreur lors de la réparation. Veuillez réessayer.");
             }
         });
+        // Dans la page Oxygene1, après la réparation
+await setDoc(valveRef, { isRepaired: true }, { merge: true });
+// Mettre à jour l'état du sabotage pour indiquer que l'oxygène est sécurisé
+const oxygenHackRef = doc(db, "hacks", "oxygene");
+await updateDoc(oxygenHackRef, { state: "Safe" });
+alert("Vanne d'oxygène 1 réparée avec succès !");
+
     </script>
 </body>
 </html>
