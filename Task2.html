@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task 2</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="task-image" id="taskImage" style="display: none;"> <!-- Ajoutez style="display: none;" initialement -->
+        <img src="images/TASK 2.jpg" alt="Task 2 Image" />
+    </div>
+    <div id="taskContent" class="password-container" style="display: none;">
+        <p>Entrez votre mot de passe :</p>
+        <input type="text" id="password" name="password" style="font-weight: bold; display: block; margin-bottom: 10px;" onInput="this.value = this.value.toUpperCase()">
+        <button id="confirm-password" style="display: block; margin-top: 10px;" onclick="checkPassword()">Confirmer</button>
+    </div>
+    <div id="taskDisabledMessage" style="text-align: center; display: none;">
+        <p>Cette task ne fait pas partie de cette game</p>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script>
+        // Votre configuration Firebase
+        var firebaseConfig = {
+            apiKey: "AIzaSyBDsVje-qI8aw5XLiSRi26O7OCvDei4Hjc",
+            authDomain: "amongkolok-5767a.firebaseapp.com",
+            projectId: "amongkolok-5767a",
+            storageBucket: "amongkolok-5767a.appspot.com",
+            messagingSenderId: "570925355792",
+            appId: "1:570925355792:web:7c616e3087b82d41814b95"
+        };
+
+        // Initialisation de Firebase
+        firebase.initializeApp(firebaseConfig);
+        var db = firebase.firestore();
+
+        // Récupération de l'état de la task2
+        db.collection("tasks").doc("task2").get().then((doc) => {
+            if (doc.exists && doc.data().activated) {
+                document.getElementById("taskContent").style.display = "block";
+                document.getElementById("taskImage").style.display = "block"; // Affiche l'image si la tâche est activée
+            } else {
+                document.getElementById("taskDisabledMessage").style.display = "block";
+                document.getElementById("taskImage").style.display = "none"; // Cache l'image si la tâche est désactivée
+            }
+        }).catch((error) => {
+            console.log("Error getting document:", error);
+        });
+
+        function checkPassword() {
+    var passwordInput = document.getElementById('password').value;
+    if (passwordInput === '27') {
+        // Met à jour le document Firestore pour la tâche avec l'état "Unlocked"
+        db.collection("tasks").doc("task2").update({
+            activated: true, // Assurez-vous que cette valeur correspond à votre logique d'activation
+            state: "Unlocked"
+        }).then(() => {
+            window.open('done.html', '_self');
+            setTimeout(function() {
+                window.close();
+            }, 500);
+        }).catch((error) => {
+            console.error("Error updating document: ", error);
+        });
+    } else {
+        alert('Mot de passe incorrect.');
+    }
+}
+
+    </script>
+</body>
+</html>
