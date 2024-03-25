@@ -50,7 +50,7 @@
 
         function checkPassword() {
     var passwordInput = document.getElementById('password').value;
-    if (passwordInput === '111') {
+    if (passwordInput === '29') {
         // Met à jour le document Firestore pour la tâche avec l'état "Unlocked"
         db.collection("tasks").doc("task1").update({
             activated: true, // Assurez-vous que cette valeur correspond à votre logique d'activation
