@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="task-image" id="taskImage" style="display: none;"> <!-- Ajoutez style="display: none;" initialement -->
-        <img src="images/TASK 6.jpg" alt="Task 6 Image" />
+    <div class="task-image" id="taskImage" style="display: none;">
+        <img src="images/TASK6.jpg" alt="Task 6 Image" />
     </div>
     <div id="taskContent" class="password-container" style="display: none;">
         <p>Entrez votre mot de passe :</p>
@@ -21,7 +21,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script>
-        // Votre configuration Firebase
         var firebaseConfig = {
             apiKey: "AIzaSyBDsVje-qI8aw5XLiSRi26O7OCvDei4Hjc",
             authDomain: "amongkolok-5767a.firebaseapp.com",
@@ -30,44 +29,38 @@
             messagingSenderId: "570925355792",
             appId: "1:570925355792:web:7c616e3087b82d41814b95"
         };
-
-        // Initialisation de Firebase
         firebase.initializeApp(firebaseConfig);
         var db = firebase.firestore();
 
-        // Récupération de l'état de la task6
-        db.collection("tasks").doc("task6").get().then((doc) => {
-            if (doc.exists && doc.data().activated) {
+        async function checkTaskStatusAndShowContent() {
+            const docSnap = await db.collection("tasks").doc("task6").get();
+            if (docSnap.exists && docSnap.data().state === "Unlocked") {
+                window.location.href = "Done.html"; // Redirige si déjà déverrouillée
+            } else if (docSnap.exists && docSnap.data().activated) {
                 document.getElementById("taskContent").style.display = "block";
-                document.getElementById("taskImage").style.display = "block"; // Affiche l'image si la tâche est activée
+                document.getElementById("taskImage").style.display = "block";
             } else {
                 document.getElementById("taskDisabledMessage").style.display = "block";
-                document.getElementById("taskImage").style.display = "none"; // Cache l'image si la tâche est désactivée
             }
-        }).catch((error) => {
-            console.log("Error getting document:", error);
-        });
+        }
+
+        checkTaskStatusAndShowContent();
 
         function checkPassword() {
-    var passwordInput = document.getElementById('password').value;
-    if (passwordInput === 'TITANIC') {
-        // Met à jour le document Firestore pour la tâche avec l'état "Unlocked"
-        db.collection("tasks").doc("task6").update({
-            activated: true, // Assurez-vous que cette valeur correspond à votre logique d'activation
-            state: "Unlocked"
-        }).then(() => {
-            window.open('done.html', '_self');
-            setTimeout(function() {
-                window.close();
-            }, 500);
-        }).catch((error) => {
-            console.error("Error updating document: ", error);
-        });
-    } else {
-        alert('Mot de passe incorrect.');
-    }
-}
-
+            var passwordInput = document.getElementById('password').value;
+            if (passwordInput === 'TITANIC') {
+                db.collection("tasks").doc("task6").update({
+                    activated: true,
+                    state: "Unlocked"
+                }).then(() => {
+                    window.location.href = 'Done.html'; // Redirection immédiate
+                }).catch((error) => {
+                    console.error("Error updating document: ", error);
+                });
+            } else {
+                alert('Mot de passe incorrect.');
+            }
+        }
     </script>
 </body>
 </html>
