@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player XXX</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .center-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="center-container" id="playerContent">
+        <!-- Le contenu initial ici sera remplacé basé sur l'état du joueur -->
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBDsVje-qI8aw5XLiSRi26O7OCvDei4Hjc",
+            authDomain: "amongkolok-5767a.firebaseapp.com",
+            projectId: "amongkolok-5767a",
+            storageBucket: "amongkolok-5767a.appspot.com",
+            messagingSenderId: "570925355792",
+            appId: "1:570925355792:web:7c616e3087b82d41814b95"
+        };
+    
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+    
+        document.addEventListener('DOMContentLoaded', async () => {
+            const playerRef = doc(db, "players", "playerXXX");
+            const docSnapshot = await getDoc(playerRef);
+            
+            if (!docSnapshot.exists()) {
+                console.log("Creating Player XXX document with 'Alive' state...");
+                await setDoc(playerRef, { state: "Alive" });
+                // Assuming you want to immediately mark the player as dead after creation
+                updatePlayerStatus("DEAD");
+            } else {
+                const playerState = docSnapshot.data().state;
+                if (playerState === "Désactivé") {
+                    document.getElementById('playerContent').innerHTML = `<h1 style="color:black;">This player is not in this game</h1>`;
+                } else {
+                    updatePlayerStatus("DEAD");
+                }
+            }
+        });
+
+        async function updatePlayerStatus(newState) {
+            const playerRef = doc(db, "players", "playerXXX");
+            await updateDoc(playerRef, { state: newState });
+            console.log(`Player XXX has been marked as ${newState}.`);
+            document.getElementById('playerContent').innerHTML = `<h1>Player XXX is ${newState}</h1>`;
+            // Start countdown only if newState is DEAD
+            if (newState === "DEAD") {
+                const endTime = new Date().getTime() + 60000; // 60 seconds from now
+                localStorage.setItem('countdownEnd', endTime.toString());
+                startCountdown(endTime);
+            }
+        }
+    
+        function startCountdown(endTime) {
+            const countdownElement = document.createElement('div');
+            countdownElement.setAttribute('id', 'countdown');
+            document.getElementById('playerContent').appendChild(countdownElement);
+    
+            const interval = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = endTime - now;
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+    
+                countdownElement.innerHTML = `You can't kill for: <b style="color:red;">${minutes}:${seconds < 10 ? '0' + seconds : seconds}</b>`;
+    
+                if (distance < 0) {
+                    clearInterval(interval);
+                    countdownElement.innerHTML = `<b style="color:orange;">You can kill again</b>`;
+                    localStorage.removeItem('countdownEnd');
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

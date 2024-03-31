@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task 27</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="task-image" id="taskImage" style="display: none;">
+        <img src="images/TASK 27.jpg" alt="Task 27 Image" />
+    </div>
+    <div id="taskContent" class="password-container" style="display: none;">
+        <p>Entrez votre mot de passe :</p>
+        <input type="text" id="password" name="password" style="font-weight: bold; display: block; margin-bottom: 10px;" onInput="this.value = this.value.toUpperCase()">
+        <button id="confirm-password" style="display: block; margin-top: 10px;" onclick="checkPassword()">Confirmer</button>
+    </div>
+    <div id="taskDisabledMessage" style="text-align: center; display: none;">
+        <p>Cette task ne fait pas partie de cette game</p>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script>
+        var firebaseConfig = {
+            apiKey: "AIzaSyBDsVje-qI8aw5XLiSRi26O7OCvDei4Hjc",
+            authDomain: "amongkolok-5767a.firebaseapp.com",
+            projectId: "amongkolok-5767a",
+            storageBucket: "amongkolok-5767a.appspot.com",
+            messagingSenderId: "570925355792",
+            appId: "1:570925355792:web:7c616e3087b82d41814b95"
+        };
+        firebase.initializeApp(firebaseConfig);
+        var db = firebase.firestore();
+
+        async function checkTaskStatusAndShowContent() {
+            const docSnap = await db.collection("tasks").doc("task27").get();
+            if (docSnap.exists && docSnap.data().state === "Unlocked") {
+                window.location.href = "Done.html"; // Redirige si déjà déverrouillée
+            } else if (docSnap.exists && docSnap.data().activated) {
+                document.getElementById("taskContent").style.display = "block";
+                document.getElementById("taskImage").style.display = "block";
+            } else {
+                document.getElementById("taskDisabledMessage").style.display = "block";
+            }
+        }
+
+        checkTaskStatusAndShowContent();
+
+        function checkPassword() {
+            var passwordInput = document.getElementById('password').value;
+            if (passwordInput === 'RIGHTS') {
+                db.collection("tasks").doc("task27").update({
+                    activated: true,
+                    state: "Unlocked"
+                }).then(() => {
+                    window.location.href = 'Done.html'; // Redirection immédiate
+                }).catch((error) => {
+                    console.error("Error updating document: ", error);
+                });
+            } else {
+                alert('Mot de passe incorrect.');
+            }
+        }
+    </script>
+</body>
+</html>
