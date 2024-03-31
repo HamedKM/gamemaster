@@ -48,7 +48,7 @@
 
         function checkPassword() {
             var passwordInput = document.getElementById('password').value;
-            if (passwordInput === '27') {
+            if (passwordInput === 'GORENJE') {
                 db.collection("tasks").doc("task37").update({
                     activated: true,
                     state: "Unlocked"

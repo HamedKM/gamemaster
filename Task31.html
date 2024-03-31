@@ -48,7 +48,7 @@
 
         function checkPassword() {
             var passwordInput = document.getElementById('password').value;
-            if (passwordInput === '27') {
+            if (passwordInput === 'CHERIFA') {
                 db.collection("tasks").doc("task31").update({
                     activated: true,
                     state: "Unlocked"
